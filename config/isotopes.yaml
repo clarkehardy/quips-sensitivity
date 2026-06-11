@@ -1,0 +1,153 @@
+# Nuclear data for the isotopes considered in Carney, Leach & Moore,
+# PRX Quantum 4, 010315 (2023), Tables I-II (secondary-particle energies and
+# intensities from ENSDF as quoted there).
+#
+# Schema per isotope:
+#   decay: EC | beta-           Q_keV: Q_EC or beta endpoint to ground state
+#   Z, A: parent atomic/mass number       half_life_days
+#   branches: [{fraction, level_keV, gammas: [{energy_keV, intensity}],
+#               conversion_electrons: [{energy_keV, intensity}]}]
+#     (fractions sum to 1; level_keV reduces the available neutrino energy;
+#      per-branch intensities are per decay through that branch)
+#   augers / xrays: atomic relaxation lines emitted in every branch
+#     (intensity = mean number per decay; may exceed 1)
+
+# ---------------------------------------------------------------- EC isotopes
+Be7:
+  decay: EC
+  Z: 4
+  A: 7
+  Q_keV: 862.0
+  half_life_days: 53.2
+  branches:
+    - {fraction: 0.894, level_keV: 0.0}
+    - fraction: 0.106
+      level_keV: 477.6
+      gammas: [{energy_keV: 477.6, intensity: 1.0}]
+  augers:
+    - {energy_keV: 0.045, intensity: 1.0}
+
+Ar37:
+  decay: EC
+  Z: 18
+  A: 37
+  Q_keV: 814.0
+  half_life_days: 35.0
+  branches:
+    - {fraction: 1.0, level_keV: 0.0}
+  augers:
+    - {energy_keV: 2.4, intensity: 0.81}
+  xrays:
+    - {energy_keV: 2.6, intensity: 0.082}
+    - {energy_keV: 2.8, intensity: 0.005}
+
+V49:
+  decay: EC
+  Z: 23
+  A: 49
+  Q_keV: 602.0
+  half_life_days: 330.0
+  branches:
+    - {fraction: 1.0, level_keV: 0.0}
+  augers:
+    - {energy_keV: 4.0, intensity: 0.69}
+    - {energy_keV: 0.4, intensity: 1.49}
+  xrays:
+    - {energy_keV: 4.5, intensity: 0.171}
+    - {energy_keV: 4.9, intensity: 0.019}
+
+Cr51:
+  decay: EC
+  Z: 24
+  A: 51
+  Q_keV: 752.0
+  half_life_days: 27.7
+  branches:
+    - {fraction: 0.901, level_keV: 0.0}
+    - fraction: 0.099
+      level_keV: 320.1
+      gammas: [{energy_keV: 320.1, intensity: 1.0}]
+  augers:
+    - {energy_keV: 4.4, intensity: 0.66}
+    - {energy_keV: 0.5, intensity: 1.46}
+  xrays:
+    - {energy_keV: 4.9, intensity: 0.194}
+    - {energy_keV: 5.4, intensity: 0.022}
+
+Ge68:
+  decay: EC
+  Z: 32
+  A: 68
+  Q_keV: 107.0
+  half_life_days: 271.0
+  branches:
+    - {fraction: 1.0, level_keV: 0.0}
+  augers:
+    - {energy_keV: 8.0, intensity: 0.42}
+    - {energy_keV: 1.1, intensity: 1.22}
+  xrays:
+    - {energy_keV: 9.2, intensity: 0.39}
+    - {energy_keV: 10.3, intensity: 0.05}
+
+Se72:
+  decay: EC
+  Z: 34
+  A: 72
+  Q_keV: 361.0
+  half_life_days: 8.4
+  # EC feeds the 45.9 keV level of 72As; the de-excitation gamma is emitted in
+  # 57% of decays, otherwise the transition is internally converted
+  # (approximate K-conversion electron energy 45.9 - 11.9 keV binding)
+  branches:
+    - fraction: 1.0
+      level_keV: 45.9
+      gammas: [{energy_keV: 45.9, intensity: 0.57}]
+      conversion_electrons: [{energy_keV: 34.0, intensity: 0.43}]
+  augers:
+    - {energy_keV: 9.1, intensity: 0.53}
+    - {energy_keV: 1.2, intensity: 1.67}
+  xrays:
+    - {energy_keV: 10.5, intensity: 0.62}
+    - {energy_keV: 11.7, intensity: 0.08}
+
+# -------------------------------------------------------------- beta isotopes
+H3:
+  decay: beta-
+  Z: 1
+  A: 3
+  Q_keV: 18.6
+  half_life_days: 4500.0
+  branches:
+    - {fraction: 1.0, level_keV: 0.0}
+
+P32:
+  decay: beta-
+  Z: 15
+  A: 32
+  Q_keV: 1710.7
+  half_life_days: 14.3
+  branches:
+    - {fraction: 1.0, level_keV: 0.0}
+
+S35:
+  decay: beta-
+  Z: 16
+  A: 35
+  Q_keV: 167.3
+  half_life_days: 87.4
+  branches:
+    - {fraction: 1.0, level_keV: 0.0}
+
+Y90:
+  decay: beta-
+  Z: 39
+  A: 90
+  Q_keV: 2278.7
+  half_life_days: 2.7
+  # rare branch to the 0+ 1760.7 keV state of 90Zr; the E0 de-excitation
+  # proceeds by ~1.74 MeV conversion electrons (paper Table II caption)
+  branches:
+    - {fraction: 0.999885, level_keV: 0.0}
+    - fraction: 1.15e-4
+      level_keV: 1760.7
+      conversion_electrons: [{energy_keV: 1742.7, intensity: 1.0}]

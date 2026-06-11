@@ -1,0 +1,71 @@
+# Experimental and simulation parameters for the levitated-nanosphere sterile
+# neutrino search (defaults follow Carney, Leach & Moore, PRX Quantum 4, 010315).
+# All energies keV, lengths nm, times days unless noted.
+
+sphere:
+  diameter_nm: 100
+  material: SiO2
+  loading_fraction: 0.01        # isotope mass fraction in the sphere
+
+trap:
+  frequency_hz: 1.0e+5
+
+readout:
+  # information collection efficiency per axis (eta_x, eta_y, eta_z);
+  # per-axis momentum noise is sigma_i = sqrt(hbar*m*omega) / sqrt(eta_i)
+  collection_efficiency: [0.4, 0.4, 0.6]
+
+secondaries:
+  trigger_efficiency: 0.4        # probability of tagging an escaping secondary
+  angular_resolution_rad: 0.02
+  energy_resolution_coeff: 0.01  # sigma_E/E = coeff * sqrt(1 MeV / E)
+  min_energy_keV: 0.5            # detection threshold for escaping secondaries
+
+exposure:
+  n_spheres: 1
+  live_time_days: 30             # spheres replaced every half-life -> steady rate
+
+materials:
+  SiO2:
+    density_g_cm3: 2.0
+    stopping_table: data/stopping/SiO2.csv
+  polystyrene:
+    density_g_cm3: 1.05
+    stopping_table: data/stopping/polystyrene.csv
+
+simulation:
+  n_mc_events: 500000
+  random_seed: 1
+  m4_grid:
+    min_keV: 10.0
+    max_keV: 3000.0    # clipped per isotope to the maximum neutrino energy
+    n_points: 30
+    log_spacing: true
+
+binning:
+  # 'auto' = half the momentum (energy) resolution, capped at 300 bins for
+  # 1D EC spectra and 100 bins per axis for 2D beta spectra; or a width in keV
+  p_nu_bin_keV: auto
+  te_bin_keV: auto
+
+statistics:
+  method: asimov       # 'asimov' (fast, asymptotic median) or 'toys' (paper method)
+  n_toys: 200
+  confidence_level: 0.95
+
+# Per-isotope detector settings (paper Fig. 5: smaller spheres and softer traps
+# for low-endpoint isotopes)
+isotope_overrides:
+  H3:
+    sphere: {diameter_nm: 25, material: polystyrene, loading_fraction: 0.20}
+    trap: {frequency_hz: 1.0e+3}
+  S35:
+    sphere: {diameter_nm: 50}
+    trap: {frequency_hz: 1.0e+4}
+
+plotting:
+  # data/<name>_data.csv files (log10(m4/GeV), log10(|Ue4|^2)) combined into
+  # the gray existing-limits envelope
+  existing_limits:
+    [Ni63, S35, Cu64, CePr144, Re187, F20, Ca45, BeEST, Mainz, Troitsk_2013,
+     Hiddemann, PionDecay, PIENU]
