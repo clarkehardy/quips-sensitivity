@@ -24,7 +24,7 @@ def make_binning(detector, isotope):
     (capped so the full range has at most ~300 bins).
     """
     cfg = detector.binning
-    sigma_p = float(np.min(detector.momentum_noise_kev))
+    sigma_p = float(np.min(detector.momentum_noise_kev[detector.measured_axes]))
     p_max = isotope.max_neutrino_energy_kev + 8.0 * sigma_p
     max_bins = 300 if isotope.decay == "EC" else 100  # keep 2D templates tractable
 

@@ -48,7 +48,10 @@ secondary-particle trigger efficiency / angular and energy resolution /
 detection threshold, exposure, the `m4` grid, binning, and the statistical
 method (`asimov` for the fast asymptotic median limit, `toys` for the paper's
 toy-MC median). `isotope_overrides` applies per-isotope settings (e.g. the
-25 nm polystyrene sphere for ³H).
+25 nm polystyrene sphere for ³H). `readout.measured_axes` selects which
+momentum components enter the analysis: with `[z]` the observable becomes the
+single-axis projection `|p_z|` (a box spectrum per neutrino line) instead of
+the full 3D `|p_nu|`.
 
 Isotope nuclear data live in `config/isotopes.yaml` (see the schema comment
 at the top). To add an isotope, add an entry with its decay type, Q value,

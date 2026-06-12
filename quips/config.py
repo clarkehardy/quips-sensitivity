@@ -140,6 +140,17 @@ class DetectorConfig:
         eta = np.asarray(self.raw["readout"]["collection_efficiency"], dtype=float)
         return self.sql_momentum_kev / np.sqrt(eta)
 
+    @property
+    def measured_axes(self):
+        """Indices of the sphere momentum components used in the analysis.
+
+        The reconstructed observable is the norm of the momentum kick projected
+        onto these axes (e.g. ['z'] for a single-axis measurement, where the
+        observable becomes |p_z| and the unmeasured components are discarded).
+        """
+        names = self.raw["readout"].get("measured_axes", ["x", "y", "z"])
+        return [{"x": 0, "y": 1, "z": 2}[a] for a in names]
+
     # --- secondary detection -------------------------------------------
     @property
     def trigger_efficiency(self):

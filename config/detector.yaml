@@ -14,6 +14,9 @@ readout:
   # information collection efficiency per axis (eta_x, eta_y, eta_z);
   # per-axis momentum noise is sigma_i = sqrt(hbar*m*omega) / sqrt(eta_i)
   collection_efficiency: [0.4, 0.4, 0.6]
+  # sphere momentum components used in the analysis; e.g. [z] for a
+  # single-axis measurement (observable becomes the projection |p_z|)
+  measured_axes: [x, y, z]
 
 secondaries:
   trigger_efficiency: 0.4        # probability of tagging an escaping secondary

@@ -189,7 +189,9 @@ class DecaySimulator:
         dp_sphere = -state["p_escape"]
         noise = rng.normal(0.0, 1.0, (n_events, 3)) * det.momentum_noise_kev
         p_nu_rec_vec = -(dp_sphere + noise + state["p_sec_rec"])
-        p_nu_rec = np.linalg.norm(p_nu_rec_vec, axis=1)
+        # use only the measured components (single-axis analyses fit the
+        # projected spectrum |p_z| rather than the full 3D |p_nu|)
+        p_nu_rec = np.linalg.norm(p_nu_rec_vec[:, det.measured_axes], axis=1)
 
         if iso.decay == "EC":
             detectable = state["n_detected"] >= 1
