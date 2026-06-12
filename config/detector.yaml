@@ -43,7 +43,7 @@ simulation:
     min_keV: 10.0
     max_keV: 3000.0    # clipped per isotope to the maximum neutrino energy
     n_points: 200
-    log_spacing: true
+    log_spacing: false  # true = log-spaced masses, false = linear spacing
 
 binning:
   # 'auto' = half the momentum (energy) resolution, capped at 300 bins for
