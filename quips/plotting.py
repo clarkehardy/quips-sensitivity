@@ -32,11 +32,21 @@ def limits_envelope(data_dir, names, m4_grid_kev):
     return np.where(np.isfinite(envelope), envelope, np.nan)
 
 
-def plot_sensitivity(results, data_dir, limit_names, output_path, title=None):
+def seesaw_ue4sq(m4_kev, m_nu_ev):
+    """Type-I seesaw expectation |Ue4|^2 = m_nu / m4 (Bolton et al.,
+    arXiv:1912.03058): the mixing needed to generate a light-neutrino mass
+    m_nu from a sterile state of mass m4."""
+    return 1e-3 * m_nu_ev / np.asarray(m4_kev, dtype=float)
+
+
+def plot_sensitivity(results, data_dir, limit_names, output_path, title=None,
+                     seesaw_m_nu_ev=None):
     """Sensitivity curves |Ue4|^2 vs m4.
 
     results: {isotope_name: (m4_kev, ue4sq)}; one panel per decay type is the
     caller's choice -- this draws everything passed in on a single axis.
+    seesaw_m_nu_ev: light-neutrino mass [eV] for the seesaw target line, or a
+    [low, high] pair to draw a band.
     """
     fig, ax = plt.subplots(figsize=(6, 4.5))
     m4_lo = min(np.nanmin(m[0]) for m in results.values())
@@ -49,12 +59,24 @@ def plot_sensitivity(results, data_dir, limit_names, output_path, title=None):
     for name, (m4, ue4) in results.items():
         good = np.isfinite(ue4)
         ax.plot(m4[good], ue4[good], lw=2, label=name)
+    bottom = max(min(np.nanmin(u[1]) for u in results.values()) * 0.1, 1e-12)
+    if seesaw_m_nu_ev is not None:
+        m_nu = np.atleast_1d(seesaw_m_nu_ev)
+        if len(m_nu) == 2:
+            ax.fill_between(grid, seesaw_ue4sq(grid, m_nu.min()),
+                            seesaw_ue4sq(grid, m_nu.max()), color="C8", alpha=0.4,
+                            lw=0, label=rf"seesaw, $m_\nu$={m_nu.min():g}-{m_nu.max():g} eV")
+            bottom = min(bottom, 0.5 * seesaw_ue4sq(m4_hi, m_nu.min()))
+        else:
+            ax.plot(grid, seesaw_ue4sq(grid, m_nu[0]), "k--", lw=1,
+                    label=rf"seesaw, $m_\nu$={m_nu[0]:g} eV")
+            bottom = min(bottom, 0.5 * seesaw_ue4sq(m4_hi, m_nu[0]))
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_xlabel(r"$m_4$ [keV]")
     ax.set_ylabel(r"$|U_{e4}|^2$ (95% CL)")
     ax.set_xlim(0.5 * m4_lo, 2.0 * m4_hi)
-    ax.set_ylim(bottom=max(min(np.nanmin(u[1]) for u in results.values()) * 0.1, 1e-12), top=1.0)
+    ax.set_ylim(bottom=bottom, top=1.0)
     if title:
         ax.set_title(title)
     ax.legend(fontsize=8, loc="upper right")

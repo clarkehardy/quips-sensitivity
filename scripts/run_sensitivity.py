@@ -116,7 +116,8 @@ def main():
             path = out / f"sensitivity_{suffix}.png"
             label = "EC" if decay_type == "EC" else "$\\beta^-$"
             plotting.plot_sensitivity(
-                subset, args.data_dir, limit_names, path, title=f"{label} isotopes"
+                subset, args.data_dir, limit_names, path, title=f"{label} isotopes",
+                seesaw_m_nu_ev=last_cfg.plotting.get("seesaw_m_nu_eV"),
             )
             print(f"wrote {path}")
 

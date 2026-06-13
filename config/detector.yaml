@@ -8,15 +8,15 @@ sphere:
   loading_fraction: 0.01        # isotope mass fraction in the sphere
 
 trap:
-  frequency_hz: 1.0e+5
+  frequency_hz: 5.0e+4
 
 readout:
   # information collection efficiency per axis (eta_x, eta_y, eta_z);
   # per-axis momentum noise is sigma_i = sqrt(hbar*m*omega) / sqrt(eta_i)
-  collection_efficiency: [0.4, 0.4, 0.6]
+  collection_efficiency: [0.4, 0.4, 0.2]
   # sphere momentum components used in the analysis; e.g. [z] for a
   # single-axis measurement (observable becomes the projection |p_z|)
-  measured_axes: [x, y, z]
+  measured_axes: [z]
 
 secondaries:
   trigger_efficiency: 0.4        # probability of tagging an escaping secondary
@@ -72,3 +72,6 @@ plotting:
   existing_limits:
     [Ni63, S35, Cu64, CePr144, Re187, F20, Ca45, BeEST, Mainz, Troitsk_2013,
      Hiddemann, PionDecay, PIENU]
+  # type-I seesaw target |Ue4|^2 = m_nu/m4 (Bolton et al., arXiv:1912.03058);
+  # a single value [eV] draws a line, a [low, high] pair draws a band
+  seesaw_m_nu_eV: 0.1
