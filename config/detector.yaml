@@ -27,10 +27,11 @@ secondaries:
 exposure:
   n_spheres: 1
   live_time_days: 365             # spheres replaced every half-life -> steady rate
-  # true: activity held constant by replacing spheres ~every half-life, so the
-  #   yield scales as 1/T_half (paper Sec. III C). false: a single sphere whose
-  #   activity decays over the live time ("a single nanosphere", paper Fig. 4),
-  #   which gives short-lived isotopes proportionally fewer decays.
+  # true (paper Sec. III C): replace spheres ~every half-life, but only for
+  #   isotopes whose half-life is shorter than live_time_days; those hold their
+  #   activity (yield ~ 1/T_half), while longer-lived isotopes are a single
+  #   sphere whose activity decays away. false: never replace (single sphere
+  #   for every isotope). At 30 days only Cr-51/Se-72 (EC) and P32/Y90 qualify.
   replace_spheres: true
 
 materials:

@@ -209,26 +209,35 @@ class DetectorConfig:
 
     @property
     def replace_spheres(self):
-        """Whether spheres are replaced to hold the activity roughly constant.
+        """Whether to replace spheres once a half-life elapses (paper Sec. III C).
 
-        True (paper Sec. III C, default): spheres are swapped for fresh ones
-        about once per half-life so the decay rate stays at its initial value
-        throughout the live time, and the total yield scales as 1/T_half.
-        False ("a single nanosphere", paper Fig. 4): one sphere's activity
-        decays away during the measurement, so short-lived isotopes accumulate
-        proportionally fewer decays. This distinction sets the *relative*
-        normalization between isotopes of very different half-life.
+        When True (default), the paper's criterion is applied *per isotope*:
+        spheres are swapped for fresh ones about once per half-life only when the
+        live time exceeds the isotope's half-life, holding the decay rate near
+        its initial value (yield ~ 1/T_half). Isotopes whose half-life is longer
+        than the live time are never replaced. When False, a single sphere is
+        always used and its activity simply decays over the live time. Per
+        isotope this is the difference between paper Fig. 4 (1 month: only the
+        short-lived isotopes are replaced) and the longer Fig. 5 exposures.
         """
         return bool(self.raw["exposure"].get("replace_spheres", True))
 
+    def replaced_for(self, isotope):
+        """Whether this isotope is replaced under the configured exposure."""
+        return self.replace_spheres and self.live_time_days > isotope.half_life_days
+
     def total_decays(self, isotope):
-        """Expected number of decays in the full exposure."""
+        """Expected number of decays in the full exposure.
+
+        A replaced sphere holds its activity near the initial value (yield grows
+        linearly in live time); otherwise a single sphere's activity decays over
+        the live time, which gives short-lived isotopes proportionally fewer
+        decays. See replace_spheres for the per-isotope replacement criterion.
+        """
         decay_const = np.log(2.0) / isotope.half_life_days
         n_atoms = self.n_isotope_atoms(isotope)
-        if self.replace_spheres:
-            # activity held at its initial value (continuous replenishment)
+        if self.replaced_for(isotope):
             return n_atoms * decay_const * self.live_time_days * self.n_spheres
-        # single sphere whose activity decays over the live time
         decayed_fraction = 1.0 - np.exp(-decay_const * self.live_time_days)
         return n_atoms * decayed_fraction * self.n_spheres
 
