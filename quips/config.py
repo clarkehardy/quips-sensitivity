@@ -30,6 +30,32 @@ class EmissionLine:
 
 
 @dataclass
+class RelaxationProduct:
+    """One alternative in a mutually-exclusive atomic-relaxation cascade.
+
+    A K-shell vacancy is filled by *either* a K x-ray *or* a KLL Auger e-, not
+    both; the alternatives are sampled mutually-exclusively (at most one per
+    decay) rather than as independent Bernoulli lines, which would otherwise
+    under-count the per-decay probability of producing a trigger secondary.
+    """
+
+    energy_kev: float
+    fraction: float  # branching among the alternatives (sum is the K-capture prob.)
+    kind: str  # 'electron' (Auger) or 'photon' (x-ray)
+
+
+@dataclass
+class RelaxationGroup:
+    """A group of mutually-exclusive K-shell cascade products.
+
+    Exactly one product is emitted per decay with probability = sum(fractions);
+    with probability 1 - sum(fractions) no K-product is emitted (L-capture).
+    """
+
+    products: list  # list of RelaxationProduct
+
+
+@dataclass
 class DecayBranch:
     fraction: float  # fraction of decays through this branch
     level_kev: float = 0.0  # daughter excitation energy (reduces neutrino energy)
@@ -46,8 +72,9 @@ class Isotope:
     q_kev: float  # total decay energy (Q_EC or beta endpoint to ground state)
     half_life_days: float
     branches: list
-    augers: list = field(default_factory=list)  # atomic relaxation, all branches
-    xrays: list = field(default_factory=list)
+    relaxation: list = field(default_factory=list)  # mutually-exclusive K-shell groups
+    augers: list = field(default_factory=list)  # independent L/M Auger lines
+    xrays: list = field(default_factory=list)  # independent L/M x-ray lines (legacy)
 
     @property
     def max_neutrino_energy_kev(self):
@@ -56,6 +83,22 @@ class Isotope:
 
 def _lines(entries):
     return [EmissionLine(e["energy_keV"], e["intensity"]) for e in (entries or [])]
+
+
+def _relaxation_groups(entries):
+    """Parse relaxation: [{products: [{energy_keV, kind, fraction}]}]."""
+    if not entries:
+        return []
+    groups = []
+    for g in entries:
+        products = [
+            RelaxationProduct(
+                energy_kev=p["energy_keV"], fraction=p["fraction"], kind=p["kind"]
+            )
+            for p in g["products"]
+        ]
+        groups.append(RelaxationGroup(products=products))
+    return groups
 
 
 def load_isotopes(path):
@@ -87,6 +130,7 @@ def load_isotopes(path):
             q_kev=d["Q_keV"],
             half_life_days=d["half_life_days"],
             branches=branches,
+            relaxation=_relaxation_groups(d.get("relaxation")),
             augers=_lines(d.get("augers")),
             xrays=_lines(d.get("xrays")),
         )

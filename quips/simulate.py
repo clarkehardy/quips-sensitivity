@@ -168,7 +168,23 @@ class DecaySimulator:
         p_nu = decay.neutrino_momentum_kev(e_nu, m4_kev)
         state["p_escape"] += p_nu[:, None] * _isotropic_directions(rng, n_events)
 
-        # --- atomic relaxation (all branches) and de-excitation -----------
+        # --- atomic relaxation: mutually-exclusive K-shell cascade --------
+        for group in iso.relaxation:
+            fracs = np.array([p.fraction for p in group.products])
+            total_prob = fracs.sum()
+            # draw: 0..N-1 = product index, N = no emission (L-capture)
+            probs = np.append(fracs, 1.0 - total_prob)
+            choice = rng.choice(len(probs), size=n_events, p=probs)
+            for j, prod in enumerate(group.products):
+                mask = choice == j
+                if not mask.any():
+                    continue
+                if prod.kind == "electron":
+                    self._emit_electrons(mask, prod.energy_kev, state)
+                else:
+                    self._emit_photons(mask, prod.energy_kev, state)
+
+        # --- independent L/M Auger/x-ray lines (always emitted) ----------
         for line in iso.augers:
             counts = _emission_counts(rng, line.intensity, n_events)
             for copy in range(counts.max()):
@@ -177,14 +193,37 @@ class DecaySimulator:
             counts = _emission_counts(rng, line.intensity, n_events)
             for copy in range(counts.max()):
                 self._emit_photons(counts > copy, line.energy_kev, state)
+
+        # --- branch de-excitation (gammas/IC mutually exclusive) ----------
         for i, branch in enumerate(iso.branches):
             in_branch = branch_idx == i
-            for line in branch.gammas:
-                emitted = in_branch & (rng.uniform(size=n_events) < line.intensity)
-                self._emit_photons(emitted, line.energy_kev, state)
-            for line in branch.conversion_electrons:
-                emitted = in_branch & (rng.uniform(size=n_events) < line.intensity)
-                self._emit_electrons(emitted, line.energy_kev, state)
+            if not in_branch.any():
+                continue
+            deex = branch.gammas + branch.conversion_electrons
+            if not deex:
+                continue
+            # mutual exclusion: one product per decay, weighted by intensity
+            intensities = np.array([line.intensity for line in deex])
+            total_deex = intensities.sum()
+            deex_probs = intensities / total_deex
+            # if intensities sum to <1, allow "no de-excitation" remainder
+            if total_deex < 1.0:
+                deex_probs = np.append(intensities, 1.0 - total_deex)
+            else:
+                deex_probs = np.append(deex_probs, 0.0)
+            n_in = int(in_branch.sum())
+            deex_choice = rng.choice(len(deex_probs), size=n_in, p=deex_probs)
+            idx_in = np.where(in_branch)[0]
+            for j, line in enumerate(deex):
+                sel = idx_in[deex_choice == j]
+                if len(sel) == 0:
+                    continue
+                mask = np.zeros(n_events, dtype=bool)
+                mask[sel] = True
+                if j < len(branch.gammas):
+                    self._emit_photons(mask, line.energy_kev, state)
+                else:
+                    self._emit_electrons(mask, line.energy_kev, state)
 
         # --- sphere kick, readout noise, neutrino reconstruction ----------
         dp_sphere = -state["p_escape"]

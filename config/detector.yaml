@@ -12,14 +12,14 @@ trap:
 
 readout:
   # information collection efficiency per axis (eta_x, eta_y, eta_z)
-  collection_efficiency: [0.4, 0.4, 0.2]
+  collection_efficiency: [0.4, 0.4, 0.6]
   # dp_SQL = sqrt(hbar*m*omega) (Eq. 5) is the SQL accuracy on the momentum
   # *vector*. true: share it over the 3 Cartesian DOF, sigma_i = dp_SQL/sqrt(3*eta_i)
   # (reproduces the Fig. 4 reach). false: apply per axis, sigma_i = dp_SQL/sqrt(eta_i).
   cartesian_split: true
   # sphere momentum components used in the analysis; e.g. [z] for a
   # single-axis measurement (observable becomes the projection |p_z|)
-  measured_axes: [z]
+  measured_axes: [x, y, z]
 
 secondaries:
   trigger_efficiency: 0.4        # probability of tagging an escaping secondary
@@ -62,7 +62,7 @@ binning:
 
 statistics:
   method: asimov       # 'asimov' (fast, asymptotic median) or 'toys' (paper method)
-  n_toys: 200
+  n_toys: 50
   confidence_level: 0.95
 
 # Per-isotope detector settings (paper Fig. 5: smaller spheres and softer traps
@@ -71,9 +71,9 @@ isotope_overrides:
   H3:
     sphere: {diameter_nm: 25, material: polystyrene, loading_fraction: 0.20}
     trap: {frequency_hz: 1.0e+3}
-  S35:
-    sphere: {diameter_nm: 50}
-    trap: {frequency_hz: 1.0e+4}
+  # S35:
+  #   sphere: {diameter_nm: 50}
+  #   trap: {frequency_hz: 1.0e+4}
 
 plotting:
   # data/<name>_data.csv files (log10(m4/GeV), log10(|Ue4|^2)) combined into

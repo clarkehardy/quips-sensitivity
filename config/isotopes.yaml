@@ -8,9 +8,14 @@
 #   branches: [{fraction, level_keV, gammas: [{energy_keV, intensity}],
 #               conversion_electrons: [{energy_keV, intensity}]}]
 #     (fractions sum to 1; level_keV reduces the available neutrino energy;
-#      per-branch intensities are per decay through that branch)
-#   augers / xrays: atomic relaxation lines emitted in every branch
-#     (intensity = mean number per decay; may exceed 1)
+#      per-branch intensities are per decay through that branch;
+#      gammas + conversion_electrons on a branch are MUTUALLY EXCLUSIVE —
+#      one is sampled per decay through that branch, weighted by intensity)
+#   relaxation: [{products: [{energy_keV, kind: electron|photon, fraction}]}]
+#     (mutually-exclusive K-shell cascade alternatives; fractions sum to the
+#      K-capture probability — remainder = L-capture, no K-product emitted)
+#   augers / xrays: independent atomic-relaxation lines (L/M cascade)
+#     (intensity = mean number per decay; may exceed 1; sampled as Bernoulli)
 
 # ---------------------------------------------------------------- EC isotopes
 Be7:
@@ -24,8 +29,10 @@ Be7:
     - fraction: 0.106
       level_keV: 477.6
       gammas: [{energy_keV: 477.6, intensity: 1.0}]
-  augers:
-    - {energy_keV: 0.045, intensity: 1.0}
+  # Be (Z=4): only K-shell; no fluorescence yield → 100% Auger
+  relaxation:
+    - products:
+        - {energy_keV: 0.045, kind: electron, fraction: 1.0}
 
 Ar37:
   decay: EC
@@ -35,11 +42,12 @@ Ar37:
   half_life_days: 35.0
   branches:
     - {fraction: 1.0, level_keV: 0.0}
-  augers:
-    - {energy_keV: 2.4, intensity: 0.81}
-  xrays:
-    - {energy_keV: 2.6, intensity: 0.082}
-    - {energy_keV: 2.8, intensity: 0.005}
+  # Ar (Z=18): K-capture prob ~0.90; ωK~0.10 → 81% Auger, 8.7% x-ray, ~10% L-capture
+  relaxation:
+    - products:
+        - {energy_keV: 2.4, kind: electron, fraction: 0.81}
+        - {energy_keV: 2.6, kind: photon, fraction: 0.082}
+        - {energy_keV: 2.8, kind: photon, fraction: 0.005}
 
 V49:
   decay: EC
@@ -49,12 +57,15 @@ V49:
   half_life_days: 330.0
   branches:
     - {fraction: 1.0, level_keV: 0.0}
+  # V (Z=23): K-capture prob ~0.88; K-Auger 69%, Kα x-ray 17.1%, Kβ 1.9%
+  relaxation:
+    - products:
+        - {energy_keV: 4.0, kind: electron, fraction: 0.69}
+        - {energy_keV: 4.5, kind: photon, fraction: 0.171}
+        - {energy_keV: 4.9, kind: photon, fraction: 0.019}
+  # L/M cascade (independent, always emitted after K-vacancy fills)
   augers:
-    - {energy_keV: 4.0, intensity: 0.69}
     - {energy_keV: 0.4, intensity: 1.49}
-  xrays:
-    - {energy_keV: 4.5, intensity: 0.171}
-    - {energy_keV: 4.9, intensity: 0.019}
 
 Cr51:
   decay: EC
@@ -67,12 +78,14 @@ Cr51:
     - fraction: 0.099
       level_keV: 320.1
       gammas: [{energy_keV: 320.1, intensity: 1.0}]
+  # Cr (Z=24): K-capture prob ~0.88; K-Auger 66%, Kα 19.4%, Kβ 2.2%
+  relaxation:
+    - products:
+        - {energy_keV: 4.4, kind: electron, fraction: 0.66}
+        - {energy_keV: 4.9, kind: photon, fraction: 0.194}
+        - {energy_keV: 5.4, kind: photon, fraction: 0.022}
   augers:
-    - {energy_keV: 4.4, intensity: 0.66}
     - {energy_keV: 0.5, intensity: 1.46}
-  xrays:
-    - {energy_keV: 4.9, intensity: 0.194}
-    - {energy_keV: 5.4, intensity: 0.022}
 
 Ge68:
   decay: EC
@@ -82,12 +95,14 @@ Ge68:
   half_life_days: 271.0
   branches:
     - {fraction: 1.0, level_keV: 0.0}
+  # Ge (Z=32): K-capture prob ~0.88; K-Auger 42%, Kα 39%, Kβ 5%
+  relaxation:
+    - products:
+        - {energy_keV: 8.0, kind: electron, fraction: 0.42}
+        - {energy_keV: 9.2, kind: photon, fraction: 0.39}
+        - {energy_keV: 10.3, kind: photon, fraction: 0.05}
   augers:
-    - {energy_keV: 8.0, intensity: 0.42}
     - {energy_keV: 1.1, intensity: 1.22}
-  xrays:
-    - {energy_keV: 9.2, intensity: 0.39}
-    - {energy_keV: 10.3, intensity: 0.05}
 
 Se72:
   decay: EC
@@ -97,18 +112,24 @@ Se72:
   half_life_days: 8.4
   # EC feeds the 45.9 keV level of 72As; the de-excitation gamma is emitted in
   # 57% of decays, otherwise the transition is internally converted
-  # (approximate K-conversion electron energy 45.9 - 11.9 keV binding)
+  # (approximate K-conversion electron energy 45.9 - 11.9 keV binding).
+  # gamma/IC are mutually exclusive on the branch (fractions sum to 1.0).
   branches:
     - fraction: 1.0
-      level_keV: 45.9
+      level_keV: 0.0 #45.9
       gammas: [{energy_keV: 45.9, intensity: 0.57}]
       conversion_electrons: [{energy_keV: 34.0, intensity: 0.43}]
+  # Se (Z=34): K-capture prob ~0.87; raw ENSDF intensities sum to 1.23 because
+  # IC on the 45.9 keV transition can create a second K-hole. Model the EC
+  # K-capture vacancy as one mutually-exclusive group (ωK~0.60 for Se).
+  # The IC-induced vacancy is handled by the branch de-excitation products.
+  relaxation:
+    - products:
+        - {energy_keV: 9.1, kind: electron, fraction: 0.35}
+        - {energy_keV: 10.5, kind: photon, fraction: 0.44}
+        - {energy_keV: 11.7, kind: photon, fraction: 0.06}
   augers:
-    - {energy_keV: 9.1, intensity: 0.53}
     - {energy_keV: 1.2, intensity: 1.67}
-  xrays:
-    - {energy_keV: 10.5, intensity: 0.62}
-    - {energy_keV: 11.7, intensity: 0.08}
 
 # -------------------------------------------------------------- beta isotopes
 H3:
