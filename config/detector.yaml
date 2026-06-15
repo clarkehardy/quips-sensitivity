@@ -8,12 +8,15 @@ sphere:
   loading_fraction: 0.01        # isotope mass fraction in the sphere
 
 trap:
-  frequency_hz: 5.0e+4
+  frequency_hz: 1.0e+5
 
 readout:
-  # information collection efficiency per axis (eta_x, eta_y, eta_z);
-  # per-axis momentum noise is sigma_i = sqrt(hbar*m*omega) / sqrt(eta_i)
+  # information collection efficiency per axis (eta_x, eta_y, eta_z)
   collection_efficiency: [0.4, 0.4, 0.2]
+  # dp_SQL = sqrt(hbar*m*omega) (Eq. 5) is the SQL accuracy on the momentum
+  # *vector*. true: share it over the 3 Cartesian DOF, sigma_i = dp_SQL/sqrt(3*eta_i)
+  # (reproduces the Fig. 4 reach). false: apply per axis, sigma_i = dp_SQL/sqrt(eta_i).
+  cartesian_split: true
   # sphere momentum components used in the analysis; e.g. [z] for a
   # single-axis measurement (observable becomes the projection |p_z|)
   measured_axes: [z]
@@ -26,7 +29,7 @@ secondaries:
 
 exposure:
   n_spheres: 1
-  live_time_days: 365             # spheres replaced every half-life -> steady rate
+  live_time_days: 30             # spheres replaced every half-life -> steady rate
   # true (paper Sec. III C): replace spheres ~every half-life, but only for
   #   isotopes whose half-life is shorter than live_time_days; those hold their
   #   activity (yield ~ 1/T_half), while longer-lived isotopes are a single

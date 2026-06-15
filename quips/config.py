@@ -135,10 +135,20 @@ class DetectorConfig:
 
     @property
     def momentum_noise_kev(self):
-        """Per-axis Gaussian momentum noise [keV/c]: SQL degraded by collection
-        efficiency, sigma_i = dp_SQL / sqrt(eta_i)."""
+        """Per-axis Gaussian momentum noise [keV/c].
+
+        dp_SQL = sqrt(hbar*m*omega) is the SQL accuracy on the momentum *vector*
+        (paper Eq. 5), reconstructed from three independent Cartesian position
+        measurements. With cartesian_split (default), that vector budget is
+        shared across the three DOF, so the per-axis baseline is dp_SQL/sqrt(3)
+        before the collection efficiency degrades it:
+            sigma_i = dp_SQL / sqrt(3 * eta_i).
+        Set readout.cartesian_split: false to instead apply dp_SQL per axis
+        (sigma_i = dp_SQL / sqrt(eta_i)).
+        """
         eta = np.asarray(self.raw["readout"]["collection_efficiency"], dtype=float)
-        return self.sql_momentum_kev / np.sqrt(eta)
+        split = 3.0 if self.raw["readout"].get("cartesian_split", True) else 1.0
+        return self.sql_momentum_kev / np.sqrt(split * eta)
 
     @property
     def measured_axes(self):
