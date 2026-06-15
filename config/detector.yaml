@@ -26,7 +26,12 @@ secondaries:
 
 exposure:
   n_spheres: 1
-  live_time_days: 30             # spheres replaced every half-life -> steady rate
+  live_time_days: 365             # spheres replaced every half-life -> steady rate
+  # true: activity held constant by replacing spheres ~every half-life, so the
+  #   yield scales as 1/T_half (paper Sec. III C). false: a single sphere whose
+  #   activity decays over the live time ("a single nanosphere", paper Fig. 4),
+  #   which gives short-lived isotopes proportionally fewer decays.
+  replace_spheres: true
 
 materials:
   SiO2:

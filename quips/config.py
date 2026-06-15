@@ -207,14 +207,30 @@ class DetectorConfig:
         """Number of isotope atoms loaded in one sphere."""
         return self.loading_fraction * self.sphere_mass_g / (isotope.A * constants.AMU_GRAMS)
 
-    def total_decays(self, isotope):
-        """Expected number of decays in the full exposure.
+    @property
+    def replace_spheres(self):
+        """Whether spheres are replaced to hold the activity roughly constant.
 
-        Spheres are replaced once per half-life, so the decay rate stays at
-        approximately its initial value throughout the live time (paper Sec. III C).
+        True (paper Sec. III C, default): spheres are swapped for fresh ones
+        about once per half-life so the decay rate stays at its initial value
+        throughout the live time, and the total yield scales as 1/T_half.
+        False ("a single nanosphere", paper Fig. 4): one sphere's activity
+        decays away during the measurement, so short-lived isotopes accumulate
+        proportionally fewer decays. This distinction sets the *relative*
+        normalization between isotopes of very different half-life.
         """
-        rate_per_day = self.n_isotope_atoms(isotope) * np.log(2.0) / isotope.half_life_days
-        return rate_per_day * self.live_time_days * self.n_spheres
+        return bool(self.raw["exposure"].get("replace_spheres", True))
+
+    def total_decays(self, isotope):
+        """Expected number of decays in the full exposure."""
+        decay_const = np.log(2.0) / isotope.half_life_days
+        n_atoms = self.n_isotope_atoms(isotope)
+        if self.replace_spheres:
+            # activity held at its initial value (continuous replenishment)
+            return n_atoms * decay_const * self.live_time_days * self.n_spheres
+        # single sphere whose activity decays over the live time
+        decayed_fraction = 1.0 - np.exp(-decay_const * self.live_time_days)
+        return n_atoms * decayed_fraction * self.n_spheres
 
 
 def load_detector_config(path, isotope_name=None):
