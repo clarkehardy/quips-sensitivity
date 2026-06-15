@@ -26,6 +26,7 @@ class EventSample:
     te_rec_kev: np.ndarray  # measured beta kinetic energy (NaN for EC)
     detectable: np.ndarray  # bool: >=1 escaping secondary (incl. beta for beta decay)
     detectable_fraction: float
+    n_detected: np.ndarray = None  # count of escaping above-threshold secondaries / event
 
 
 def _isotropic_directions(rng, n):
@@ -205,4 +206,5 @@ class DecaySimulator:
             te_rec_kev=state["te_rec"],
             detectable=detectable,
             detectable_fraction=float(detectable.mean()),
+            n_detected=state["n_detected"].copy(),
         )
